@@ -4,8 +4,8 @@ pipeline {
     // Define variables for the image, container names, and port number
     environment {
         IMAGE_NAME = 'myapp12345:latest'
-        CONTAINER_NAME = 'promo10'
-        PORT_NO = '8100' // Define the port number variable
+        CONTAINER_NAME = 'promo11'
+        PORT_NO = '8101' // Define the port number variable
         REPO_URL = 'https://github.com/saini1233/Automation.git' // Replace with your repo URL
         BRANCH_NAME = 'main' // Specify the branch name here
     }
@@ -88,12 +88,21 @@ pipeline {
                         }
                     """
                     
-                    // Execute Job DSL to create the new job
-                    jobDsl(scriptText: jobDslScript)
-                    
+                    // Set a timeout for creating the Job DSL job
+                    timeout(time: 05, unit: 'MINUTES') { // Adjust time as necessary
+                        // Execute Job DSL to create the new job
+                        jobDsl(scriptText: jobDslScript)
+                    }
+
                     echo "Created a new pipeline job: ${restartJobName}"
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
         }
     }
 }
