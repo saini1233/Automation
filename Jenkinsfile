@@ -4,8 +4,8 @@ pipeline {
     // Define variables for the image, container names, and port number
     environment {
         IMAGE_NAME = 'myapp12345:latest'
-        CONTAINER_NAME = 'promo7'
-        PORT_NO = '8017' // Define the port number variable
+        CONTAINER_NAME = 'promo8'
+        PORT_NO = '8018' // Define the port number variable
         REPO_URL = 'https://github.com/saini1233/Automation.git' // Replace with your repo URL
         BRANCH_NAME = 'main' // Specify the branch name here
     }
