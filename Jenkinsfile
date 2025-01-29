@@ -55,23 +55,41 @@ pipeline {
                     // Create a new pipeline job for restarting Apache in the deployed container
                     def restartJobName = "RestartApache-${CONTAINER_NAME}"
                     
-                    // Create a new job using Job DSL or other methods (assuming Job DSL plugin is installed)
-                    job(restartJobName) {
-                        description("Pipeline to restart Apache in container ${CONTAINER_NAME}")
-                        steps {
-                            shell("""
-                                #!/bin/bash
-                                # Clone the repository again into a temporary directory
-                                git branch: "${BRANCH_NAME}", url: "${REPO_URL}"
-                                
-                                # Copy new files to the Apache directory in the running container
-                                docker exec ${CONTAINER_NAME} cp -r ./index.html /var/www/html/
-                                
-                                # Restart Apache in the container
-                                docker exec ${CONTAINER_NAME} systemctl restart apache2
-                            """)
+                    // Define Job DSL script for creating the restart job
+                    def jobDslScript = """
+                        pipelineJob('${restartJobName}') {
+                            description('Pipeline to restart Apache in container ${CONTAINER_NAME}')
+                            definition {
+                                cps {
+                                    script('''
+                                        pipeline {
+                                            agent any
+                                            stages {
+                                                stage('Git Checkout') {
+                                                    steps {
+                                                        script {
+                                                            git branch: '${BRANCH_NAME}', url: '${REPO_URL}'
+                                                        }
+                                                    }
+                                                }
+                                                stage('Restart Apache') {
+                                                    steps {
+                                                        script {
+                                                            sh 'docker exec ${CONTAINER_NAME} cp -r ./index.html /var/www/html/'
+                                                            sh 'docker exec ${CONTAINER_NAME} systemctl restart apache2'
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ''')
+                                }
+                            }
                         }
-                    }
+                    """
+                    
+                    // Execute Job DSL to create the new job
+                    jobDsl(scriptText: jobDslScript)
                     
                     echo "Created a new pipeline job: ${restartJobName}"
                 }
