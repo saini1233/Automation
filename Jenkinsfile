@@ -4,8 +4,8 @@ pipeline {
     // Define variables for the image, container names, and port number
     environment {
         IMAGE_NAME = 'myapp12345:latest'
-        CONTAINER_NAME = 'promo11'
-        PORT_NO = '8101' // Define the port number variable
+        CONTAINER_NAME = 'promo12'
+        PORT_NO = '8102' // Define the port number variable
         REPO_URL = 'https://github.com/saini1233/Automation.git' // Replace with your repo URL
         BRANCH_NAME = 'main' // Specify the branch name here
     }
@@ -52,7 +52,6 @@ pipeline {
         stage('Create Restart Pipeline') {
             steps {
                 script {
-                    // Create a new pipeline job for restarting Apache in the deployed container
                     def restartJobName = "RestartApache-${CONTAINER_NAME}"
                     
                     // Define Job DSL script for creating the restart job
@@ -65,6 +64,11 @@ pipeline {
                                         pipeline {
                                             agent any
                                             stages {
+                                                stage('Approval') {
+                                                    steps {
+                                                        input message: 'Please approve to continue', ok: 'Approve', timeout: 5 * 60, timeoutMessage: 'Approval timed out'
+                                                    }
+                                                }
                                                 stage('Git Checkout') {
                                                     steps {
                                                         script {
@@ -88,13 +92,17 @@ pipeline {
                         }
                     """
                     
-                    // Set a timeout for creating the Job DSL job
-                    timeout(time: 05, unit: 'MINUTES') { // Adjust time as necessary
-                        // Execute Job DSL to create the new job
-                        jobDsl(scriptText: jobDslScript)
-                    }
+                    // Use try-catch to handle potential failures gracefully
+                    try {
+                        timeout(time: 10, unit: 'MINUTES') { // Set a timeout for creating the Job DSL job
+                            jobDsl(scriptText: jobDslScript)
+                        }
 
-                    echo "Created a new pipeline job: ${restartJobName}"
+                        echo "Created a new pipeline job: ${restartJobName}"
+                    } catch (Exception e) {
+                        echo "Failed to create job '${restartJobName}': ${e.message}"
+                        currentBuild.result = 'UNSTABLE' // Mark build as unstable instead of failing completely
+                    }
                 }
             }
         }
