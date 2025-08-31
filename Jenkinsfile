@@ -6,7 +6,7 @@ pipeline {
         IMAGE_NAME = 'myapp12345:latest'
         CONTAINER_NAME = 'promo12'
         PORT_NO = '8102' // Define the port number variable
-        REPO_URL = 'https://github.com/saini1233/Automation.git' // Replace with your repo URL
+        REPO_URL = 'url_of_your_git_like(Automation) ' // Replace with your repo URL
         BRANCH_NAME = 'main' // Specify the branch name here
     }
     
